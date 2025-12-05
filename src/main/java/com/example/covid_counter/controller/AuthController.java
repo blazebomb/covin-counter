@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.covid_counter.model.AuthRequest;
 import com.example.covid_counter.model.AuthResponse;
+import com.example.covid_counter.model.OtpChallengeResponse;
+import com.example.covid_counter.model.OtpVerifyRequest;
 import com.example.covid_counter.model.RegisterRequest;
 import com.example.covid_counter.service.AuthService;
 
@@ -38,22 +40,34 @@ public class AuthController {
     /**
      * POST /auth/register
      * Body: { "name": "...", "email": "...", "password": "..." }
-     * Returns: { "token": "...", "email": "..." }
+     * Returns: { "token": null, "email": "..." } (token comes after OTP login)
      */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        // No JWT yet; user must login and pass OTP.
         AuthResponse auth = authService.registerUser(request);
-        return withTokenCookie(auth);
+        return ResponseEntity.ok(auth);
     }
 
     /**
      * POST /auth/login
      * Body: { "email": "...", "password": "..." }
-     * Returns: { "token": "...", "email": "..." }
+     * Returns: OTP_REQUIRED response, no JWT yet.
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        AuthResponse auth = authService.loginUser(request);
+    public ResponseEntity<OtpChallengeResponse> login(@RequestBody AuthRequest request) {
+        OtpChallengeResponse otpResponse = authService.loginUser(request);
+        return ResponseEntity.ok(otpResponse);
+    }
+
+    /**
+     * POST /auth/verify-otp
+     * Body: { "email": "...", "code": "123456" }
+     * Returns: JWT token if OTP is valid, plus sets cookie.
+     */
+    @PostMapping("/verify-otp")
+    public ResponseEntity<AuthResponse> verifyOtp(@RequestBody OtpVerifyRequest request) {
+        AuthResponse auth = authService.verifyOtp(request.getEmail(), request.getCode());
         return withTokenCookie(auth);
     }
 
@@ -75,6 +89,10 @@ public class AuthController {
     }
 
     private ResponseEntity<AuthResponse> withTokenCookie(AuthResponse auth) {
+        if (auth.getToken() == null || auth.getToken().isBlank()) {
+            // No token to set; just return body.
+            return ResponseEntity.ok(auth);
+        }
         ResponseCookie cookie = ResponseCookie.from("Authorization", auth.getToken())
                 .path("/")
                 .httpOnly(true)

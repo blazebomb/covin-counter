@@ -27,4 +27,16 @@ public class UsersModel {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Mark whether the user has recently passed OTP (set true on successful verification).
+    @Column(name = "verified")
+    private Boolean verified;
+
+    // Last OTP code sent to the user (for simple demo storage).
+    @Column(name = "otp_code")
+    private String otpCode;
+
+    // When the OTP expires. After this time, the code is invalid.
+    @Column(name = "otp_expires_at")
+    private LocalDateTime otpExpiresAt;
 }

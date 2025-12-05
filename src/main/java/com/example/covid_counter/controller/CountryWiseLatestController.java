@@ -9,7 +9,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+        // Allow typical local dev ports; broadened to reduce CORS 403s during development.
+        origins = {
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000"
+        },
+        allowCredentials = "true")
 @RequestMapping("/countries")
 public class CountryWiseLatestController {
 
