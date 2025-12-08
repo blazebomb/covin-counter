@@ -32,7 +32,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
+                    // Allow public read/write for data tables; tighten if you want auth-only updates.
                     .requestMatchers(HttpMethod.GET, "/countries/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/countries/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/worldometer/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/worldometer/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/day-wise/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/day-wise/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/covid-data/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/covid-data/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             )
